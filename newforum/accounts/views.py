@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from  .models import profile
 from django.urls import reverse
 
 
@@ -40,7 +41,9 @@ def register_view(request):
         user.first_name=fname
         user.last_name=lname
         user.save()
-
+        userprofile=profile.objects.create(user=user)
+        print(userprofile)
+        userprofile.save()
     data={
         "message" : message
     }
