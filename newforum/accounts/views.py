@@ -12,20 +12,25 @@ import datetime
 from newforum.settings import SECRET_KEY
 from functools import wraps 
 import requests
-secretKey=SECRET_KEY
+secretKey="secretkey"
+
+
+
 
 def token_req(f):
     @wraps(f)
     def decorated(request, *args, **kwargs):
         bearerToken=request.headers['Authorization']
         token=bearerToken.split(" ",1)[1]
-        print(token)
-        
-        try:
-            data=jwt.decode(token, secretKey)
-            print(data)
-        except:
+        if not token:
             return JsonResponse({'message': "token not valid"})
+        try:
+            print(token)
+            data=jwt.decode(token, secretKey,algorithms=["HS256"] )
+        except:
+            print("tokennot working")
+            return JsonResponse({'message': "token not valid"})
+        
         return f(request, *args, **kwargs)
     return decorated
 
@@ -76,10 +81,10 @@ def login_view(request):
     username=body['username']
     password=body['password']
     user=authenticate(request, username=username, password=password)
-    token=jwt.encode({'username':username, 'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes=60)}, secretKey)
+    token=jwt.encode({'user':username, 'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes=60)}, secretKey,algorithm="HS256"  )
     if user is not None:
         login(request, user)
-        return JsonResponse({"res" : True, 'token' : token})
+        return JsonResponse({"res" : True, 'token' : token })
     return JsonResponse({"res" : False})
 
 
