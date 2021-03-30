@@ -7,8 +7,27 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from  .models import profile
 from django.urls import reverse
+import jwt
+import datetime
+from newforum.settings import SECRET_KEY
+from functools import wraps 
+import requests
+secretKey=SECRET_KEY
 
-
+def token_req(f):
+    @wraps(f)
+    def decorated(request, *args, **kwargs):
+        bearerToken=request.headers['Authorization']
+        token=bearerToken.split(" ",1)[1]
+        print(token)
+        
+        try:
+            data=jwt.decode(token, secretKey)
+            print(data)
+        except:
+            return JsonResponse({'message': "token not valid"})
+        return f(request, *args, **kwargs)
+    return decorated
 
 @csrf_exempt
 def register_view(request):
@@ -57,11 +76,19 @@ def login_view(request):
     username=body['username']
     password=body['password']
     user=authenticate(request, username=username, password=password)
+    token=jwt.encode({'username':username, 'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes=60)}, secretKey)
     if user is not None:
         login(request, user)
-        return JsonResponse({"res" : True})
+        return JsonResponse({"res" : True, 'token' : token})
     return JsonResponse({"res" : False})
 
+
+
+@csrf_exempt
+@token_req
+def profile_view(request, username):
+    print("ola mola olaola")
+    return JsonResponse({"res" : True})
 
 
 
