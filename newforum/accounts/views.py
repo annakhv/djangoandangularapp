@@ -5,16 +5,15 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from  .models import profile
+from  .models import profile, PERSONAL_STATUSES
 from django.urls import reverse
 import jwt
 import datetime
 from newforum.settings import SECRET_KEY
 from functools import wraps 
 import requests
-secretKey="secretkey"
 
-
+secretKey=SECRET_KEY
 
 
 def token_req(f):
@@ -92,10 +91,65 @@ def login_view(request):
 @csrf_exempt
 @token_req
 def profile_view(request, username):
-    print("ola mola olaola")
-    return JsonResponse({"res" : True})
+    ctx={}
+    user=User.objects.filter(username=username).values('first_name', 'last_name', "id")[0]
+    firstname=user['first_name']
+    lastname=user['last_name']
+    ctx["firstname"]=firstname
+    ctx["lastname"]=lastname
+    id=user['id']
+    basicInfo=profile.objects.get(user=id)
+    if basicInfo:
+       ctx["res"]=True
+       if basicInfo.birthdate is not None:
+          ctx["Birthdate"]=basicInfo.birthdate
+       if basicInfo.currentcountry is not None:
+           ctx["Lives in"]=basicInfo.currentcountry
+       if basicInfo.relationshipstatus is not None:
+           for status in PERSONAL_STATUSES:
+               if status[0] == basicInfo.relationshipstatus:
+                  ctx["Relationship status"] = status[1]
+       if basicInfo.origincountry is not None:
+           ctx["From"]=basicInfo.origincountry
+    return JsonResponse(ctx)
 
 
-
+@csrf_exempt
+@token_req
 def logout_view(request):
     return True
+
+
+@csrf_exempt
+@token_req
+def updateProfile_view(request, username):
+    body_unicode=request.body.decode('utf-8')
+    body=json.loads(body_unicode)
+    birthdate=body['birthdate']
+    originCountry=body['originCountry']
+    currentCountry=body['currentCountry']
+    status=body['status']
+    print(birthdate)
+    birthdateField=birthdate if  birthdate != "birthdate" else None
+    originCountryField=originCountry if originCountry != "select" and originCountry !="country of origin"  else None
+    currentCountryFIeld=currentCountry if currentCountry != "select" and currentCountry!="current country"  else None
+    statusField=status[0:1] if status != "select" and status != "relationship status" else None
+    userprofile=profile.objects.filter(user__username=username).count()
+    user=User.objects.get(username=username)
+    if userprofile == 0 :
+        print("profile none")
+        profile.objects.create(user=user, birthdate=birthdateField, origincountry=originCountryField, currentcountry=currentCountryFIeld, relationshipstatus=statusField)
+        userprofile=profile.objects.filter(user__username=username).values()
+        message="profile created successfully"
+        print(userprofile)
+    else:
+        exitinguserprofile=profile.objects.get(user__username=username)
+        print(exitinguserprofile)
+        exitinguserprofile.currentcountry=currentCountryFIeld if currentCountryFIeld !=None else exitinguserprofile.currentcountry
+        exitinguserprofile.relationshipstatus=statusField if statusField != None else  exitinguserprofile.relationshipstatus
+        exitinguserprofile.origincountry=originCountryField if originCountryField != None else exitinguserprofile.origincountry
+        exitinguserprofile.birthdate=birthdateField if birthdateField != None else exitinguserprofile.birthdate
+        exitinguserprofile.save()
+        message="profile updated successfully"
+        print(exitinguserprofile)
+    return JsonResponse({"res" : True, "message": message})
