@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from  .models import profile, PERSONAL_STATUSES
+from  .models import profile, PERSONAL_STATUSES, education, workPlace
 from django.urls import reverse
 import jwt
 import datetime
@@ -153,3 +153,65 @@ def updateProfile_view(request, username):
         message="profile updated successfully"
         print(exitinguserprofile)
     return JsonResponse({"res" : True, "message": message})
+
+
+@csrf_exempt
+@token_req
+def addEdu_view(request, username):
+    user=User.objects.get(username=username)
+    body_unicode=request.body.decode('utf-8')
+    body=json.loads(body_unicode)
+    level=body['level']
+    institution=body['institution']
+    country=body['country']
+    startdate=body['startdate']
+    enddate=body['enddate']
+    levelField=level if level!="" and level!="type" else None
+    institutionFIeld=institution if institution!="" and institution!="institution" else None
+    countryField=country if country !="" and country!="country" and country !="select" else None
+    startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
+    enddateField=enddate if enddate != "" and enddate!="enddate" else None
+    if (institutionFIeld and levelField):
+        education.objects.create(user=user, educationType=levelFiel, institution=institutionFIeld,country=countryField, startDate=startdateFIeld, endDate=enddateField)
+        return JsonResponse({"res" : True, "message":"education added successfully" })
+    else:
+        return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
+
+
+@csrf_exempt
+@token_req
+def addWork_view(request, username):
+    user=User.objects.get(username=username)
+    body_unicode=request.body.decode('utf-8')
+    body=json.loads(body_unicode)
+    workplace=body['workplace']
+    country=body['country']
+    startdate=body['startdate']
+    enddate=body['enddate']
+    workField=workplace if workplace!="" and workplace!="workplace" else None
+    countryField=country if country !="" and country!="country" and country !="select" else None
+    startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
+    enddateField=enddate if enddate != "" and enddate!="enddate" else None
+    if (workFIeld and levelField):
+        workPlace.objects.create(user=user, company=workField, country=countryField, startDate=startdateFIeld, endDate=enddateField)
+        return JsonResponse({"res" : True, "message":"workplace added successfully" })
+    else:
+        return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
+
+@csrf_exempt
+@token_req
+def getWork_view(request, username):
+    print("work works")
+    return JsonResponse({"res" : True, })
+
+@csrf_exempt
+@token_req
+def getEdu_view(request, username):
+    print("work works")
+    return JsonResponse({"res" : True, })
+
+@csrf_exempt
+@token_req
+def search_view(request, searchtext):
+    print("search works")
+    return JsonResponse({"res" : True, })
