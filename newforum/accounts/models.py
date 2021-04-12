@@ -38,7 +38,7 @@ class education(models.Model):
     endDate=models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
     country=models.CharField(max_length=50, blank=True, null=True)
 
-    def __repr__(self):
+    def __respr__(self):
         return  "%s studied %s at %s" (self.user, self.educationType, self.institution)
 
 class workPlace(models.Model):

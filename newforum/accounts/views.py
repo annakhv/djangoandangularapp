@@ -12,7 +12,7 @@ import datetime
 from newforum.settings import SECRET_KEY
 from functools import wraps 
 import requests
-
+from django.core import serializers
 secretKey=SECRET_KEY
 
 
@@ -172,7 +172,7 @@ def addEdu_view(request, username):
     startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
     enddateField=enddate if enddate != "" and enddate!="enddate" else None
     if (institutionFIeld and levelField):
-        education.objects.create(user=user, educationType=levelFiel, institution=institutionFIeld,country=countryField, startDate=startdateFIeld, endDate=enddateField)
+        education.objects.create(user=user, educationType=levelField, institution=institutionFIeld,country=countryField, startDate=startdateFIeld, endDate=enddateField)
         return JsonResponse({"res" : True, "message":"education added successfully" })
     else:
         return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
@@ -192,7 +192,7 @@ def addWork_view(request, username):
     countryField=country if country !="" and country!="country" and country !="select" else None
     startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
     enddateField=enddate if enddate != "" and enddate!="enddate" else None
-    if (workFIeld and levelField):
+    if (workField ):
         workPlace.objects.create(user=user, company=workField, country=countryField, startDate=startdateFIeld, endDate=enddateField)
         return JsonResponse({"res" : True, "message":"workplace added successfully" })
     else:
@@ -201,14 +201,43 @@ def addWork_view(request, username):
 @csrf_exempt
 @token_req
 def getWork_view(request, username):
-    print("work works")
-    return JsonResponse({"res" : True, })
+    user=User.objects.get(username=username)
+    work=workPlace.objects.filter(user=user).count()
+    if work != 0:
+        workList=workPlace.objects.filter(user=user).values().order_by('endDate')
+        for item in workList:
+           print(item)
+           for data in item:
+               if type(item[data])== datetime.date:
+                   datestr=item[data].strftime("%m/%d/%Y")
+                   item[data]=datestr
+        listData=[item for item in workList]
+        jsona=json.dumps(listData)
+    return JsonResponse({"res" : True, "json" :jsona})
 
 @csrf_exempt
 @token_req
 def getEdu_view(request, username):
-    print("work works")
-    return JsonResponse({"res" : True, })
+    user=User.objects.get(username=username)
+    edu=education.objects.filter(user=user).count()
+    if edu != 0:
+       eduList=education.objects.filter(user=user).values().order_by('endDate')
+       for item in eduList:
+           print(item)
+           for data in item:
+               print(type(item[data]))
+               if type(item[data])== datetime.date:
+                   print("entered")
+                   datestr=item[data].strftime("%m/%d/%Y")
+                   item[data]=datestr
+                   print(type(item[data]))
+       listData=[item for item in eduList]
+       jsona=json.dumps(listData)
+    
+    
+    return JsonResponse({"res" : True, "json": jsona})
+
+
 
 @csrf_exempt
 @token_req
