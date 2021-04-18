@@ -14,7 +14,7 @@ from functools import wraps
 import requests
 from django.core import serializers
 secretKey=SECRET_KEY
-
+from django.db.models import Q
 
 def token_req(f):
     @wraps(f)
@@ -206,14 +206,15 @@ def getWork_view(request, username):
     if work != 0:
         workList=workPlace.objects.filter(user=user).values().order_by('endDate')
         for item in workList:
-           print(item)
            for data in item:
                if type(item[data])== datetime.date:
                    datestr=item[data].strftime("%m/%d/%Y")
                    item[data]=datestr
         listData=[item for item in workList]
         jsona=json.dumps(listData)
-    return JsonResponse({"res" : True, "json" :jsona})
+        return JsonResponse({"res" : True, "json" :jsona})
+    else:
+        return JsonResponse({"res" : False})
 
 @csrf_exempt
 @token_req
@@ -223,24 +224,88 @@ def getEdu_view(request, username):
     if edu != 0:
        eduList=education.objects.filter(user=user).values().order_by('endDate')
        for item in eduList:
-           print(item)
            for data in item:
-               print(type(item[data]))
                if type(item[data])== datetime.date:
-                   print("entered")
                    datestr=item[data].strftime("%m/%d/%Y")
                    item[data]=datestr
-                   print(type(item[data]))
        listData=[item for item in eduList]
        jsona=json.dumps(listData)
-    
-    
-    return JsonResponse({"res" : True, "json": jsona})
-
+       return JsonResponse({"res" : True, "json": jsona})
+    else:
+        return JsonResponse({"res" : False})
 
 
 @csrf_exempt
 @token_req
 def search_view(request, searchtext):
-    print("search works")
-    return JsonResponse({"res" : True, })
+    print(searchtext)
+    userDict={}
+    if searchtext != "":
+       searchtext=searchtext.split(" ")
+       for text in searchtext:
+           users=User.objects.filter(Q(username__icontains=text) | Q(first_name__icontains=text) | Q(last_name__icontains=text)).values('username', 'first_name', 'last_name')
+           if users:
+              for user in users:
+                  uniqeName=user['username']
+                  userDict[uniqeName]=[user['first_name'], user['last_name']]
+           else:
+                return JsonResponse({"res" : False, 'message':"no user found" })
+       jsona=json.dumps(userDict)        
+       return JsonResponse({"res" : True, 'json':jsona })
+    else:
+        return JsonResponse({"res" : False, 'message':"no user found" })
+
+
+
+@csrf_exempt
+@token_req
+def followUser_view(request, thisUsername, otherUsername):
+    thisProfile=profile.objects.get(user__username=thisUsername)
+    otherProfile=profile.objects.get(user__username=otherUsername)
+    results= thisProfile.following.all()
+    names=results.filter().values_list('user__username', flat=True)
+    if otherUsername not in names:
+       thisProfile.following.add(otherProfile)
+       thisProfile.save()
+    else:
+       thisProfile.following.remove(otherProfile)
+       print(otherProfile)
+       print(thisProfile.following.all())
+    return JsonResponse({"res":True})
+
+
+
+@csrf_exempt
+@token_req
+def getFollowers_view(request, thisUsername):
+    userDict={}
+    userProfile=profile.objects.get(user__username=thisUsername)
+    results=userProfile.follower.all()
+    print(results)
+    valuesList=results.filter().values('user__username', 'user__first_name', 'user__last_name')
+
+    if valuesList:
+        for eachUser in valuesList:
+            user=eachUser['user__username']
+            userDict[user]=[eachUser['user__first_name'], eachUser['user__last_name']]
+        jsona=json.dumps(userDict)  
+        return JsonResponse({"res":True, "json": jsona})
+    else:
+        return JsonResponse({"res":False, "message": "no followers found"})
+
+@csrf_exempt
+@token_req
+def getFollowing_view(request, thisUsername):
+    userDict={}
+    userProfile=profile.objects.get(user__username=thisUsername)
+    results=userProfile.following.all()
+    valuesList=results.filter().values('user__username', 'user__first_name', 'user__last_name')
+    print(valuesList)
+    if valuesList:
+        for eachUser in valuesList:
+            user=eachUser['user__username']
+            userDict[user]=[eachUser['user__first_name'], eachUser['user__last_name']]
+        jsona=json.dumps(userDict)  
+        return JsonResponse({"res":True, "json": jsona})
+    else:
+        return JsonResponse({"res":False, "message": "no user is followed by this user"})

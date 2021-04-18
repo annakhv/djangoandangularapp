@@ -26,9 +26,13 @@ class profile(models.Model):
     relationshipstatus=models.CharField(choices=PERSONAL_STATUSES, blank=True, null=True , max_length=50)
     origincountry=models.CharField(max_length=50, blank=True, null=True)
     currentcountry=models.CharField(max_length=50, blank=True, null=True)
+    is_active=models.BooleanField(default=False, blank=True)
+    following=models.ManyToManyField("self", blank=True,  symmetrical=False, related_name="follower")
 
-    def __repr__(self):
-        return "%s born on %s from %s" (self.user, self.birthdate, self+origincountry)
+   # def __repr__(self):
+   #     return "%s born on %s from %s" (self.user, self.birthdate,  self.origincountry)
+
+
 
 class education(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
@@ -38,7 +42,7 @@ class education(models.Model):
     endDate=models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
     country=models.CharField(max_length=50, blank=True, null=True)
 
-    def __respr__(self):
+    def __repr__(self):
         return  "%s studied %s at %s" (self.user, self.educationType, self.institution)
 
 class workPlace(models.Model):

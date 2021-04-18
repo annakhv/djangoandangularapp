@@ -14,4 +14,7 @@ urlpatterns = [
     path('getEdu/<username>', views.getEdu_view, name="getEdu"),
     path('getWork/<username>', views.getWork_view, name="getWork"),
      path('search/<searchtext>', views.search_view, name="search"),
+    path('followUser/<thisUsername>/<otherUsername>', views.followUser_view, name="followUser"),
+    path('getFollowers/<thisUsername>', views.getFollowers_view, name="getFollowers"),
+    path('getFollowing/<thisUsername>', views.getFollowing_view, name="getFollowing"),
 ]
