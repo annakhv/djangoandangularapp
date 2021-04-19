@@ -157,7 +157,7 @@ def updateProfile_view(request, username):
 
 @csrf_exempt
 @token_req
-def addEdu_view(request, username):
+def addAndUpdateEdu_view(request, username, id):
     user=User.objects.get(username=username)
     body_unicode=request.body.decode('utf-8')
     body=json.loads(body_unicode)
@@ -167,20 +167,30 @@ def addEdu_view(request, username):
     startdate=body['startdate']
     enddate=body['enddate']
     levelField=level if level!="" and level!="type" else None
-    institutionFIeld=institution if institution!="" and institution!="institution" else None
+    institutionField=institution if institution!="" and institution!="institution" else None
     countryField=country if country !="" and country!="country" and country !="select" else None
-    startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
+    startdateField=startdate if startdate !="" and startdate!="startdate" else None
     enddateField=enddate if enddate != "" and enddate!="enddate" else None
-    if (institutionFIeld and levelField):
-        education.objects.create(user=user, educationType=levelField, institution=institutionFIeld,country=countryField, startDate=startdateFIeld, endDate=enddateField)
-        return JsonResponse({"res" : True, "message":"education added successfully" })
+    if id == "add":
+       if (institutionFIeld and levelField):
+           education.objects.create(user=user, educationType=levelField, institution=institutionField,country=countryField, startDate=startdateField, endDate=enddateField)
+           return JsonResponse({"res" : True, "message":"education added successfully" })
+       else:
+           return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
     else:
-        return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
-
+        existingEdu=education.objects.get(id=id)
+        print(existingEdu)
+        existingEdu.educationType=levelField if levelField != None else existingEdu.educationType
+        existingEdu.institution=institutionField if institutionField != None else existingEdu.institution
+        existingEdu.country=countryField if countryField != None else existingEdu.country
+        existingEdu.startDate=startdateField if startdateField != None else existingEdu.startDate
+        existingEdu.endDate=enddateField if enddateField != None else existingEdu.endDate
+        existingEdu.save()
+        return JsonResponse({"res" : True, "message":"education has been updated successfully" })
 
 @csrf_exempt
 @token_req
-def addWork_view(request, username):
+def addAndUpdateWork_view(request, username, id):
     user=User.objects.get(username=username)
     body_unicode=request.body.decode('utf-8')
     body=json.loads(body_unicode)
@@ -192,11 +202,23 @@ def addWork_view(request, username):
     countryField=country if country !="" and country!="country" and country !="select" else None
     startdateFIeld=startdate if startdate !="" and startdate!="startdate" else None
     enddateField=enddate if enddate != "" and enddate!="enddate" else None
-    if (workField ):
-        workPlace.objects.create(user=user, company=workField, country=countryField, startDate=startdateFIeld, endDate=enddateField)
-        return JsonResponse({"res" : True, "message":"workplace added successfully" })
+    if id=="add":
+       if (workField ):
+           workPlace.objects.create(user=user, company=workField, country=countryField, startDate=startdateFIeld, endDate=enddateField)
+           return JsonResponse({"res" : True, "message":"workplace added successfully" })
+       else:
+           return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
     else:
-        return JsonResponse({"res" : True, "message":"please fill in all the required fields" })
+        existingWorkPlace=workPlace.objects.get(id=id)  
+        print(existingWorkPlace) 
+        existingWorkPlace.company=workField if workField != None else existingWorkPlace.company
+        existingWorkPlace.country=countryField if countryField != None else existingWorkPlace.country
+        existingWorkPlace.startDate=startdateFIeld if startdateFIeld != None else existingWorkPlace.startDate
+        existingWorkPlace.endDate=enddateField if enddateField != None else existingWorkPlace.endDate
+        existingWorkPlace.save()
+        print(existingWorkPlace)
+        return JsonResponse({"res" : True, "message":"workplace has been udated successfully" })
+
 
 @csrf_exempt
 @token_req
