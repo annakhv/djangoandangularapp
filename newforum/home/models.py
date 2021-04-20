@@ -4,19 +4,21 @@ from django.contrib.auth.models import User
 
 
 class  question(models.Model):
-    user=models.ForeignKey(User)
-    date=models.DateField(auto_now=True)
-    question.models.CharField(max_length=None)
+    user=models.ForeignKey(User, on_delete=models.PROTECT)
+    date=models.DateField(auto_now_add=True)
+    question=models.CharField(max_length=1000)
 
 
 class answer(models.Model):
-    user=models.ForeignKey(User)
+    user=models.ForeignKey(User, on_delete=models.PROTECT)
     whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE)
-    date=models.DateField(auto_now=True)
+    answer=models.TextField()
+    date=models.DateField(auto_now_add=True)
     upVotes=models.PositiveIntegerField()
 
 
 class comment(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     whichAnswer=models.ForeignKey(question,  on_delete=models.CASCADE)
+    comment=models.TextField()
     date=models.DateField(auto_now=True)
