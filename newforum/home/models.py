@@ -6,19 +6,25 @@ from django.contrib.auth.models import User
 class  question(models.Model):
     user=models.ForeignKey(User, on_delete=models.PROTECT)
     date=models.DateField(auto_now_add=True)
-    question=models.CharField(max_length=1000)
+    userQuestion=models.CharField(max_length=1000)
 
+  #  def __str__(self):
+   #     return self.userQuestion
 
 class answer(models.Model):
     user=models.ForeignKey(User, on_delete=models.PROTECT)
     whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE)
-    answer=models.TextField()
+    userAnswer=models.TextField()
     date=models.DateField(auto_now_add=True)
     upVotes=models.PositiveIntegerField()
+    def __str__(self):
+        return self.userAnswer
 
 
 class comment(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     whichAnswer=models.ForeignKey(question,  on_delete=models.CASCADE)
-    comment=models.TextField()
+    userComment=models.TextField()
     date=models.DateField(auto_now=True)
+    def __str__(self):
+        return self.userComment
