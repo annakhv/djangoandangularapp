@@ -16,7 +16,8 @@ class answer(models.Model):
     whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE)
     userAnswer=models.TextField()
     date=models.DateField(auto_now_add=True)
-    upVotes=models.PositiveIntegerField()
+    upVotes=models.PositiveIntegerField(blank=True, null=True)
+
     def __str__(self):
         return self.userAnswer
 

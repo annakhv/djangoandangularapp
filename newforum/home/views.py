@@ -38,7 +38,6 @@ def getQuestions_view(request, username):
     result=user.following.all()
     usernames=result.values_list('user__username', flat=True)
     questions=question.objects.filter(Q(user__username__in=usernames) | Q(user__username=username))
-    print(questions)
     if questions:
         results=questions.filter().values('user__username', 'user__first_name', 'user__last_name', 'userQuestion', 'id').order_by('date')
         for item in results:
@@ -52,16 +51,41 @@ def getQuestions_view(request, username):
 @token_req
 @csrf_exempt
 def answerQuestion_view(request, username, question_id):
-
-    return JsonResponse({"res" : True})
-
-
+    body_unicode=request.body.decode('utf-8')
+    body=json.loads(body_unicode)
+    answerToQuestion=body['answerText']
+    if answerToQuestion != "":
+       user=User.objects.get(username=username)
+       questionToAnswer=question.objects.get(id=question_id)
+       addanswer=answer.objects.create(user=user, whichQuestion=questionToAnswer, userAnswer=answerToQuestion )
+       message="answer has been added successfuly"
+       return JsonResponse({"res" : True, 'message': message})
+    else:
+       message="try again"
+       return JsonResponse({"res" : False, 'message': message})
 
 @token_req
 @csrf_exempt
 def getAnswersAndComments_view(request, username):
-
-    return JsonResponse({"res" : True})
+    resultList=[]
+    answerDict={}
+    user=profile.objects.get(user__username=username)
+    result=user.following.all()
+    usernames=result.values_list('user__username', flat=True)
+    answers=answer.objects.filter(Q(user__username__in=usernames) | Q(user__username=username))
+    results=answers.filter().values('user__username', 'user__first_name', 'user__last_name', 'whichQuestion' ,'whichQuestion__userQuestion','userAnswer' , 'id').order_by('date')
+    for result in results:
+       answerDict['username']=result['user__username']
+       answerDict['firstname']=result['user__first_name']
+       answerDict['lastname']=result['user__last_name']
+       answerDict['questionId']=result['whichQuestion']
+       answerDict['question']=result['whichQuestion__userQuestion']
+       answerDict['answerId']=result['id']
+       answerDict['answer']=result['userAnswer']
+       resultList.append(answerDict)
+       answerDict={}
+    jsona=json.dumps(resultList)
+    return JsonResponse({"res" : True, 'json':resultList })
 
 
 @token_req
