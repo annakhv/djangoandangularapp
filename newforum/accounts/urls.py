@@ -17,4 +17,6 @@ urlpatterns = [
     path('followUser/<thisUsername>/<otherUsername>', views.followUser_view, name="followUser"),
     path('getFollowers/<thisUsername>', views.getFollowers_view, name="getFollowers"),
     path('getFollowing/<thisUsername>', views.getFollowing_view, name="getFollowing"),
+    path('deleteEdu/<edu_id>', views.deleteEdu_view, name="deleteEdu"),
+    path('deleteWork/<work_id>', views.deleteWork_view, name="deleteWork")
 ]

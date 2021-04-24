@@ -331,3 +331,24 @@ def getFollowing_view(request, thisUsername):
         return JsonResponse({"res":True, "json": jsona})
     else:
         return JsonResponse({"res":False, "message": "no user is followed by this user"})
+
+csrf_exempt
+@token_req
+def deleteEdu_view(resuest, edu_id):
+    edu=education.objects.get(id=edu_id)
+    print(edu)
+    if edu:
+       edu.delete()
+       return JsonResponse({"res":True, 'message' : "education deleted successfuly"})
+    else:
+        return JsonResponse({"res":False, 'message' : "no object has been found to remove"})
+
+csrf_exempt
+@token_req
+def deleteWork_view(request, work_id):
+    work=workPlace.objects.get(id=work_id)
+    if work:
+       work.delete()
+       return JsonResponse({"res":True, 'message' : "workplace deleted successfuly"})
+    else: 
+       return JsonResponse({"res":False, 'message' : "no object has been found to remove"})
