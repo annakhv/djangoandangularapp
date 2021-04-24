@@ -172,7 +172,7 @@ def addAndUpdateEdu_view(request, username, id):
     startdateField=startdate if startdate !="" and startdate!="startdate" else None
     enddateField=enddate if enddate != "" and enddate!="enddate" else None
     if id == "add":
-       if (institutionFIeld and levelField):
+       if (institutionField and levelField):
            education.objects.create(user=user, educationType=levelField, institution=institutionField,country=countryField, startDate=startdateField, endDate=enddateField)
            return JsonResponse({"res" : True, "message":"education added successfully" })
        else:
