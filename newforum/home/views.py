@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from datetime import datetime
 import sys
-import sys
 sys.path.append(".")
 from django.views.decorators.csrf import csrf_exempt
 import json

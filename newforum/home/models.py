@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class  question(models.Model):
-    user=models.ForeignKey(User, on_delete=models.PROTECT)
+    user=models.ForeignKey(User, on_delete=models.PROTECT, related_name="allQuestions")
     date=models.DateTimeField(auto_now_add=True)
     userQuestion=models.CharField(max_length=1000)
 
@@ -12,8 +12,8 @@ class  question(models.Model):
    #     return self.userQuestion
 
 class answer(models.Model):
-    user=models.ForeignKey(User, on_delete=models.PROTECT)
-    whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE)
+    user=models.ForeignKey(User, on_delete=models.PROTECT, related_name="answers")
+    whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE, related_name="allAnswers")
     userAnswer=models.TextField()
     date=models.DateTimeField(auto_now_add=True)
     upVotes=models.PositiveIntegerField(blank=True, null=True)
@@ -23,7 +23,7 @@ class answer(models.Model):
 
 
 class comment(models.Model):
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    user=models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     whichAnswer=models.ForeignKey(answer,  on_delete=models.CASCADE, related_name='allComments')
     userComment=models.TextField()
     date=models.DateTimeField(auto_now=True)
