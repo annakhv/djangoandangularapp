@@ -12,4 +12,5 @@ urlpatterns = [
      path('getQuestions/<username>', views.getQuestions_view, name="getQuestions"),
      path('getAnswers/<username>', views.getAnswers_view, name="getAnswers"),
      path('getComment/<username>/<answer_id>', views.getComment_view, name="getComment"),
+     path('upVoteAnswer/<username>/<answer_id>', views.upVoteAnswer_view, name='upVoteAnswer')
 ]

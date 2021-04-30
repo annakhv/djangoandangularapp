@@ -16,7 +16,7 @@ class answer(models.Model):
     whichQuestion=models.ForeignKey(question,  on_delete=models.CASCADE, related_name="allAnswers")
     userAnswer=models.TextField()
     date=models.DateTimeField(auto_now_add=True)
-    upVotes=models.PositiveIntegerField(blank=True, null=True)
+    upVotes=models.ManyToManyField(User,  blank=True,  related_name='upVotes')
 
     def __str__(self):
         return self.userAnswer

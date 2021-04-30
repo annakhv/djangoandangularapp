@@ -79,12 +79,19 @@ def getAnswers_view(request, username):
            answerDict['questionId']=result['whichQuestion']
            answerDict['question']=result['whichQuestion__userQuestion']
            answerDict['answerId']=result['id']
+           upVotes=answer.objects.get(id=result['id']).upVotes.all()
+           if upVotes.filter(username=username).exists():
+              answerDict['thisUserUpVotedAnswer']=True
+           else:
+              answerDict['thisUserUpVotedAnswer']=False
+           answerDict['upVotes']=upVotes.count()
            answerDict['answer']=result['userAnswer']
            if result['date'] !=  None:
                date=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
                answerDict['date']=date
            resultList.insert(0, answerDict)
            answerDict={}
+       resultList=sorted(resultList, key=lambda item: item['upVotes'], reverse=True)
        jsona=json.dumps(resultList)
        return JsonResponse({"res" : True, 'json':resultList })
 
@@ -129,3 +136,18 @@ def getComment_view(request,  username, answer_id):
       return JsonResponse({"res" : True, "json":jsona})
    else:
       return JsonResponse({"res" : False, "message":"no comment has been found" })
+
+
+@token_req
+@csrf_exempt
+def upVoteAnswer_view(request,  username, answer_id):     
+    answerToUpVote=answer.objects.get(id=answer_id)
+    user=User.objects.get(username=username)
+    upVotes=answerToUpVote.upVotes.all()
+    print(upVotes)
+    if upVotes.filter(username=username).exists():
+       answerToUpVote.upVotes.remove(user)
+    else:
+       print("add")
+       answerToUpVote.upVotes.add(user)
+    return JsonResponse({"res" : True})

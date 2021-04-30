@@ -83,6 +83,9 @@ def login_view(request):
     token=jwt.encode({'user':username, 'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes=60)}, secretKey,algorithm="HS256"  )
     if user is not None:
         login(request, user)
+        userprof=profile.objects.get(user__username=username)
+        userprof.is_active=True
+        userprof.save()
         return JsonResponse({"res" : True, 'token' : token })
     return JsonResponse({"res" : False})
 
@@ -116,8 +119,13 @@ def profile_view(request, username):
 
 @csrf_exempt
 @token_req
-def logout_view(request):
-    return True
+def logout_view(request, username):
+        print(request)
+        logout(request)
+        userProf=profile.objects.get(user__username=username)
+        userProf.is_active=False
+        userProf.save()
+        return JsonResponse({"res":True})
 
 
 @csrf_exempt
@@ -288,7 +296,7 @@ def followUser_view(request, thisUsername, otherUsername):
     names=results.filter().values_list('user__username', flat=True)
     if otherUsername not in names:
        thisProfile.following.add(otherProfile)
-       thisProfile.save()
+     #  thisProfile.save()
     else:
        thisProfile.following.remove(otherProfile)
        print(otherProfile)
