@@ -94,7 +94,8 @@ def getAnswers_view(request, username):
        resultList=sorted(resultList, key=lambda item: item['upVotes'], reverse=True)
        jsona=json.dumps(resultList)
        return JsonResponse({"res" : True, 'json':resultList })
-
+    else:
+       return JsonResponse({"res":False})
 
 @token_req
 @csrf_exempt
