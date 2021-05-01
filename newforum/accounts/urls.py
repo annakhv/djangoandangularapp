@@ -13,10 +13,11 @@ urlpatterns = [
     path('addAndUpdateWork/<username>/<id>', views.addAndUpdateWork_view, name="addAndUpdateWork"),
     path('getEdu/<username>', views.getEdu_view, name="getEdu"),
     path('getWork/<username>', views.getWork_view, name="getWork"),
-     path('search/<searchtext>', views.search_view, name="search"),
+    path('search/<searchtext>', views.search_view, name="search"),
     path('followUser/<thisUsername>/<otherUsername>', views.followUser_view, name="followUser"),
     path('getFollowers/<thisUsername>', views.getFollowers_view, name="getFollowers"),
     path('getFollowing/<thisUsername>', views.getFollowing_view, name="getFollowing"),
     path('deleteEdu/<edu_id>', views.deleteEdu_view, name="deleteEdu"),
-    path('deleteWork/<work_id>', views.deleteWork_view, name="deleteWork")
+    path('deleteWork/<work_id>', views.deleteWork_view, name="deleteWork"),
+    path('ifThisUsernameFollows/<thisUsername>/<otherUsername>', views.ifThisUsernameFollows_view, name="ifThisUsernameFollows")
 ]

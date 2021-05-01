@@ -10,7 +10,7 @@ from accounts.views import token_req
 from accounts.models import profile
 from django.contrib.auth.models import User
 from django.db.models import Q
-
+import random
 
 @token_req
 @csrf_exempt
@@ -30,19 +30,21 @@ def askQuestion_view(request, username):
 @csrf_exempt
 def getQuestions_view(request, username):
     print("getquestions")
-    questionDict={}
     user=profile.objects.get(user__username=username)
     result=user.following.all()
     usernames=result.values_list('user__username', flat=True)
     questions=question.objects.filter(Q(user__username__in=usernames) | Q(user__username=username))
     if questions:
         results=questions.filter().values('user__username', 'user__first_name', 'user__last_name', 'userQuestion', 'id').order_by('-date')
-        for item in results:
-           questionDict[item['userQuestion']]=[item['user__first_name'], item['user__last_name'], item['user__username'], item['id']]
-        jsona=json.dumps(questionDict)   
+        jsona=processQuestions(results)   
         return JsonResponse({"res" : True, 'json':jsona})
     else:
-        return JsonResponse({"res" : False})
+        lastObjId=question.objects.latest('id').id
+        randomList=random.sample(range(1,lastObjId), 20)
+        questions=question.objects.filter(id__in=randomList)
+        results=questions.filter().values('user__username', 'user__first_name', 'user__last_name', 'userQuestion', 'id').order_by('-date')
+        jsona=processQuestions(results)
+        return JsonResponse({"res" : True, 'json':jsona})
 
 
 @token_req
@@ -64,38 +66,22 @@ def answerQuestion_view(request, username, question_id):
 @token_req
 @csrf_exempt
 def getAnswers_view(request, username):
-    resultList=[]
-    answerDict={}
     user=profile.objects.get(user__username=username)
     result=user.following.all()
     usernames=result.values_list('user__username', flat=True)
     answers=answer.objects.filter(Q(user__username__in=usernames) | Q(user__username=username))
     results=answers.filter().values('user__username', 'user__first_name', 'user__last_name', 'whichQuestion' ,'whichQuestion__userQuestion','userAnswer' , 'id', 'date').order_by('date')
     if results:
-       for result in results:
-           answerDict['username']=result['user__username']
-           answerDict['firstname']=result['user__first_name']
-           answerDict['lastname']=result['user__last_name']
-           answerDict['questionId']=result['whichQuestion']
-           answerDict['question']=result['whichQuestion__userQuestion']
-           answerDict['answerId']=result['id']
-           upVotes=answer.objects.get(id=result['id']).upVotes.all()
-           if upVotes.filter(username=username).exists():
-              answerDict['thisUserUpVotedAnswer']=True
-           else:
-              answerDict['thisUserUpVotedAnswer']=False
-           answerDict['upVotes']=upVotes.count()
-           answerDict['answer']=result['userAnswer']
-           if result['date'] !=  None:
-               date=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
-               answerDict['date']=date
-           resultList.insert(0, answerDict)
-           answerDict={}
-       resultList=sorted(resultList, key=lambda item: item['upVotes'], reverse=True)
-       jsona=json.dumps(resultList)
+     #  jsona=json.dumps(resultList)
+       resultList=processAnswer(results, username)
        return JsonResponse({"res" : True, 'json':resultList })
     else:
-       return JsonResponse({"res":False})
+       lastObjId=answer.objects.latest('id').id
+       randomList=random.sample(range(1,lastObjId), 20)
+       answers=answer.objects.filter(id__in=randomList)
+       results=answers.filter().values('user__username', 'user__first_name', 'user__last_name', 'whichQuestion' ,'whichQuestion__userQuestion','userAnswer' , 'id', 'date').order_by('date')
+       resultList=processAnswer(results, username)
+       return JsonResponse({"res":True, 'json':resultList})
 
 @token_req
 @csrf_exempt
@@ -152,3 +138,34 @@ def upVoteAnswer_view(request,  username, answer_id):
        print("add")
        answerToUpVote.upVotes.add(user)
     return JsonResponse({"res" : True})
+
+def processQuestions(results):
+    questionDict={}
+    for item in results:
+           questionDict[item['userQuestion']]=[item['user__first_name'], item['user__last_name'], item['user__username'], item['id']]
+    jsona=json.dumps(questionDict)  
+    return jsona
+def processAnswer(results, username):
+       resultList=[]
+       answerDict={}
+       for result in results:
+           answerDict['username']=result['user__username']
+           answerDict['firstname']=result['user__first_name']
+           answerDict['lastname']=result['user__last_name']
+           answerDict['questionId']=result['whichQuestion']
+           answerDict['question']=result['whichQuestion__userQuestion']
+           answerDict['answerId']=result['id']
+           upVotes=answer.objects.get(id=result['id']).upVotes.all()
+           if upVotes.filter(username=username).exists():
+              answerDict['thisUserUpVotedAnswer']=True
+           else:
+              answerDict['thisUserUpVotedAnswer']=False
+           answerDict['upVotes']=upVotes.count()
+           answerDict['answer']=result['userAnswer']
+           if result['date'] !=  None:
+               date=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
+               answerDict['date']=date
+           resultList.insert(0, answerDict)
+           answerDict={}
+       resultList=sorted(resultList, key=lambda item: item['upVotes'], reverse=True)
+       return resultList

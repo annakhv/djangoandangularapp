@@ -290,18 +290,33 @@ def search_view(request, searchtext):
 @csrf_exempt
 @token_req
 def followUser_view(request, thisUsername, otherUsername):
+    print("ented follow this user")
     thisProfile=profile.objects.get(user__username=thisUsername)
     otherProfile=profile.objects.get(user__username=otherUsername)
     results= thisProfile.following.all()
+    print("this user follow these")
+    print(results)
     names=results.filter().values_list('user__username', flat=True)
     if otherUsername not in names:
        thisProfile.following.add(otherProfile)
-     #  thisProfile.save()
+      # thisProfile.save()
     else:
        thisProfile.following.remove(otherProfile)
        print(otherProfile)
        print(thisProfile.following.all())
     return JsonResponse({"res":True})
+
+@csrf_exempt
+@token_req
+def ifThisUsernameFollows_view(request, thisUsername, otherUsername):
+    print("works if user follows")
+    thisUserProfile=profile.objects.get(user__username=thisUsername)
+    otherUserProfile=profile.objects.get(user__username=otherUsername).id
+    print(thisUserProfile.following.filter(id=otherUserProfile).exists())
+    if thisUserProfile.following.filter(id=otherUserProfile).exists():
+       return JsonResponse({"following":True})
+    else:
+       return JsonResponse({"following":False})
 
 
 
@@ -313,7 +328,6 @@ def getFollowers_view(request, thisUsername):
     results=userProfile.follower.all()
     print(results)
     valuesList=results.filter().values('user__username', 'user__first_name', 'user__last_name')
-
     if valuesList:
         for eachUser in valuesList:
             user=eachUser['user__username']
@@ -328,8 +342,10 @@ def getFollowers_view(request, thisUsername):
 def getFollowing_view(request, thisUsername):
     userDict={}
     userProfile=profile.objects.get(user__username=thisUsername)
+    print(userProfile)
     results=userProfile.following.all()
     valuesList=results.filter().values('user__username', 'user__first_name', 'user__last_name')
+    print("getfollowingview")
     print(valuesList)
     if valuesList:
         for eachUser in valuesList:
@@ -340,7 +356,7 @@ def getFollowing_view(request, thisUsername):
     else:
         return JsonResponse({"res":False, "message": "no user is followed by this user"})
 
-csrf_exempt
+@csrf_exempt
 @token_req
 def deleteEdu_view(resuest, edu_id):
     edu=education.objects.get(id=edu_id)
@@ -351,7 +367,7 @@ def deleteEdu_view(resuest, edu_id):
     else:
         return JsonResponse({"res":False, 'message' : "no object has been found to remove"})
 
-csrf_exempt
+@csrf_exempt
 @token_req
 def deleteWork_view(request, work_id):
     work=workPlace.objects.get(id=work_id)
