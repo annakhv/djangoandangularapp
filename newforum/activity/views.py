@@ -62,3 +62,27 @@ def personalActivity_view(request, username):
     infoList=sorted(infoList, key=lambda item: item['date'],reverse=True)
     jsona=json.dumps(infoList)
     return JsonResponse({"res":True, "json": jsona})
+
+
+
+
+@token_req
+@csrf_exempt
+def activeUsers_view(request, username):
+    userList=[]
+    userDic={}
+    thisUserProfile=profile.objects.get(user__username=username)
+    allFollowing=thisUserProfile.following.all()
+    results=allFollowing.filter(is_active=True).values('user__username', 'user__first_name', 'user__last_name')
+    if results:
+       for result in results:
+           userDic['username']=result['user__username']
+           userDic['firstname']=result['user__first_name']
+           userDic['lastname']=result['user__last_name']
+           userList.append(userDic)
+           userDic={}
+       print(userList)
+       jsona=json.dumps(userList)
+       return JsonResponse({"res":True, "json": jsona})
+    else:
+       return JsonResponse({"res":False, "message": "no user that you follow is actve right now" })
