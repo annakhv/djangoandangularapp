@@ -125,6 +125,45 @@ def getComment_view(request,  username, answer_id):
       return JsonResponse({"res" : False, "message":"no comment has been found" })
 
 
+
+
+@token_req
+@csrf_exempt
+def thisQuestionAnswers_view(request, questionId):
+   dic={}
+   dicQuestion={}
+   List=[]
+   theQuestion=question.objects.get(id=questionId)
+   ques=theQuestion.userQuestion
+   quesDate=theQuestion.date.strftime("%m/%d/%Y, %H:%M:%S") if theQuestion.date is not None else ""
+   print(quesDate)
+   firstname=theQuestion.user.first_name
+   lastname=theQuestion.user.last_name
+   answers=theQuestion.allAnswers.all()
+   dicQuestion['question']=ques
+   dicQuestion['date']=quesDate
+   dicQuestion['firstname']=firstname
+   dicQuestion['lastname']=lastname
+   results=answers.filter().values('userAnswer', 'date', 'user__first_name', 'user__last_name').order_by('-date')
+   for result in results:
+       dic["answer"]=result['userAnswer']
+       if result['date'] != None:
+             date=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
+             dic['date']=date
+       dic["firstname"]=result["user__first_name"]
+       dic['lastname']=result["user__last_name"]
+       List.append(dic)
+       dic={}
+   jsona=json.dumps(List)
+   return JsonResponse({"res" : True, "json":jsona, "questionInfo": dicQuestion})
+
+
+
+
+
+
+
+
 @token_req
 @csrf_exempt
 def upVoteAnswer_view(request,  username, answer_id):     
