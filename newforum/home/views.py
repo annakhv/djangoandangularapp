@@ -140,12 +140,16 @@ def thisQuestionAnswers_view(request, questionId):
    firstname=theQuestion.user.first_name
    lastname=theQuestion.user.last_name
    answers=theQuestion.allAnswers.all()
+   dicQuestion['id']=theQuestion.id
    dicQuestion['question']=ques
    dicQuestion['date']=quesDate
    dicQuestion['firstname']=firstname
    dicQuestion['lastname']=lastname
-   results=answers.filter().values('userAnswer', 'date', 'user__first_name', 'user__last_name').order_by('-date')
+   results=answers.filter().values('userAnswer', 'date', 'user__first_name', 'user__last_name', 'id').order_by('-date')
    for result in results:
+       upVotes=answer.objects.get(id=result['id']).upVotes.all().count()
+       dic['id']=result['id']
+       dic['upVotes']=upVotes
        dic["answer"]=result['userAnswer']
        if result['date'] != None:
              date=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
