@@ -93,12 +93,48 @@ def activeUsers_view(request, username):
 @token_req
 @csrf_exempt
 def getSentMessages_view(request, username):
-    return JsonResponse({"res":True})
+    resultList=[]
+    answerDict={}
+    user=User.objects.get(username=username)
+    allMessages=user.messages.all()
+    results=allMessages.filter().values('id', 'toUser__first_name', 'toUser__last_name', 'title', 'date').order_by('-date')
+    print(results)
+    if results:
+       for result in results:
+           answerDict['id']=result['id']
+           answerDict['firstname']=result['toUser__first_name']
+           answerDict['lastname']=result['toUser__last_name']
+           answerDict['title']=result['title']
+           answerDict['date']=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
+           resultList.append(answerDict)
+           answerDict={}
+        jsona=json.dumps(resultList)   
+        return JsonResponse({"res":True, 'json':jsona})
+    return JsonResponse({"res":True, 'message':"no messages"})
+
+
 
 @token_req
 @csrf_exempt
 def getInbox_view(request, username):
-    return JsonResponse({"res":True})
+    resultList=[]
+    answerDict={}
+    user=User.objects.get(username=username)
+    getAllMessages=user.allMessages.all()
+    results=allMessages.filter().values('id', 'fromUser__first_name', 'fromUser__last_name', 'title', 'date').order_by('-date')
+    print(results)
+    if results:
+       for result in results:
+           answerDict['id']=result['id']
+           answerDict['firstname']=result['fromUser__first_name']
+           answerDict['lastname']=result['fromUser__last_name']
+           answerDict['title']=result['title']
+           answerDict['date']=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
+           resultList.append(answerDict)
+           answerDict={}
+        jsona=json.dumps(resultList)
+        return JsonResponse({"res":True, 'json':jsona})
+    return JsonResponse({"res":True, 'message':"inbox is empty"})
 
 
 @token_req
@@ -106,12 +142,52 @@ def getInbox_view(request, username):
 def sendMessage_view(request, fromUser, toUser):
     sender=User.objects.get(username=fromUser)
     getter=User.objects.get(username=toUser)
-    
-
-    return JsonResponse({"res":True})
+    body_unicode=request.body.decode('utf-8')
+    body=json.loads(body_unicode)
+    textOfMessage=body['messageText']
+    if textOfMessage != "" :
+       newMessage=message.objects.create(fromUser=fromUser, toUSer=toUser, messageText=textOfMessage)
+       return JsonResponse({"res":True, "message": "message is sent successfully"})
+    else:
+       return JsonResponse({"res":False, "message": "message is empty , please add text"})
 
 
 @token_req
 @csrf_exempt
 def deleteMessage_view(request, username, messageId):
-    return JsonResponse({"res":True})
+    theMessage=message.objects.get(id=messageId)
+    if  theMessage.deleteFromGetter == True and theMessage.fromUser == username:
+        theMessage.delete()
+        return JsonResponse({"res":True})
+    elif theMessage.deleteFromSender == True and theMessage.toUser == username:
+         theMessage.delete()
+         return JsonResponse({"res":True})
+    elif theMessage.fromUser == username:
+       theMessage.deleteFromSender =True
+       theMessage.save()
+       return JsonResponse({"res":True})
+    elif theMessage.toUser == username:
+         theMessage.deleteFromGetter = True
+         theMessage.save()
+         return JsonResponse({"res":True})
+    else:
+         return JsonResponse({"res":False})
+
+
+
+@token_req
+@csrf_exempt
+def singleMessage_view(request,  messageId):
+    message={}
+    theMessage=message.objects.get(id=messageId)
+    if theMessage:
+       message['text']=theMessage.messageText
+       message['textTitle']=theMessage.title
+       message['date']=theMessage.date.strftime("%m/%d/%Y, %H:%M:%S")
+       message['senderfname']=theMessage.fromUser__first_name
+       message['enderlname']=theMessage.fromUser__last_name
+       message['getterfname']=theMessage.toUser__first_name
+       message['getterlname']=theMessage.toUser__last_name
+       return JsonResponse({"res":True, "singleMessage": message})
+    else:
+       return JsonResponse({"res":False, "message": 'message has not been found'})

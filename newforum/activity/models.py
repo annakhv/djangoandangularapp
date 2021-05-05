@@ -9,6 +9,7 @@ class message(models.Model):
     fromUser=models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     toUser=models.ForeignKey(User, on_delete=models.CASCADE, related_name="allMessages")
     messageText=models.TextField()
+    title=models.CharField(max_length=200, null=True)
     date=models.DateTimeField(auto_now_add=True)
     deleteFromSender=models.BooleanField(default=False)
     deleteFromGetter=models.BooleanField(default=False)

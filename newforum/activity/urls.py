@@ -8,5 +8,6 @@ urlpatterns=[
   path('getSentMessages/<username>', views.getSentMessages_view, name="getSentMessages"),
   path('getInbox/<username>', views.getInbox_view, name="getInbox"),
   path('sendMessage/<fromUser>/<toUser>', views.sendMessage_view, name='sendMessage'),
-  path('deleteMessage/<username>/<messageId>', views.deleteMessage_view, name='deleteMessage')
+  path('deleteMessage/<username>/<messageId>', views.deleteMessage_view, name='deleteMessage'),
+  path('singleMessage/<messageId>', views.deleteMessage_view, name="singleMessage")
 ]

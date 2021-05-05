@@ -188,6 +188,8 @@ def processQuestions(results):
            questionDict[item['userQuestion']]=[item['user__first_name'], item['user__last_name'], item['user__username'], item['id']]
     jsona=json.dumps(questionDict)  
     return jsona
+
+    
 def processAnswer(results, username):
        resultList=[]
        answerDict={}
