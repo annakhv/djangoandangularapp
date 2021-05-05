@@ -86,3 +86,32 @@ def activeUsers_view(request, username):
        return JsonResponse({"res":True, "json": jsona})
     else:
        return JsonResponse({"res":False, "message": "no user that you follow is actve right now" })
+
+
+
+
+@token_req
+@csrf_exempt
+def getSentMessages_view(request, username):
+    return JsonResponse({"res":True})
+
+@token_req
+@csrf_exempt
+def getInbox_view(request, username):
+    return JsonResponse({"res":True})
+
+
+@token_req
+@csrf_exempt
+def sendMessage_view(request, fromUser, toUser):
+    sender=User.objects.get(username=fromUser)
+    getter=User.objects.get(username=toUser)
+    
+
+    return JsonResponse({"res":True})
+
+
+@token_req
+@csrf_exempt
+def deleteMessage_view(request, username, messageId):
+    return JsonResponse({"res":True})
