@@ -11,7 +11,7 @@ from accounts.views import token_req
 from accounts.models import profile
 from django.contrib.auth.models import User
 from django.db.models import Q
-
+from .models import message
 
 
 @token_req
@@ -97,8 +97,7 @@ def getSentMessages_view(request, username):
     answerDict={}
     user=User.objects.get(username=username)
     allMessages=user.messages.all()
-    results=allMessages.filter().values('id', 'toUser__first_name', 'toUser__last_name', 'title', 'date').order_by('-date')
-    print(results)
+    results=allMessages.filter(deleteFromSender=False).values('id', 'toUser__first_name', 'toUser__last_name', 'title', 'date').order_by('-date')
     if results:
        for result in results:
            answerDict['id']=result['id']
@@ -108,9 +107,9 @@ def getSentMessages_view(request, username):
            answerDict['date']=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
            resultList.append(answerDict)
            answerDict={}
-        jsona=json.dumps(resultList)   
-        return JsonResponse({"res":True, 'json':jsona})
-    return JsonResponse({"res":True, 'message':"no messages"})
+       jsona=json.dumps(resultList)   
+       return JsonResponse({"res":True, 'json':jsona})
+    return JsonResponse({"res":False, 'message':"no messages"})
 
 
 
@@ -121,8 +120,7 @@ def getInbox_view(request, username):
     answerDict={}
     user=User.objects.get(username=username)
     getAllMessages=user.allMessages.all()
-    results=allMessages.filter().values('id', 'fromUser__first_name', 'fromUser__last_name', 'title', 'date').order_by('-date')
-    print(results)
+    results=getAllMessages.filter(deleteFromGetter=False).values('id', 'fromUser__first_name', 'fromUser__last_name', 'title', 'date').order_by('-date')
     if results:
        for result in results:
            answerDict['id']=result['id']
@@ -132,9 +130,9 @@ def getInbox_view(request, username):
            answerDict['date']=result['date'].strftime("%m/%d/%Y, %H:%M:%S")
            resultList.append(answerDict)
            answerDict={}
-        jsona=json.dumps(resultList)
-        return JsonResponse({"res":True, 'json':jsona})
-    return JsonResponse({"res":True, 'message':"inbox is empty"})
+       jsona=json.dumps(resultList)
+       return JsonResponse({"res":True, 'json':jsona})
+    return JsonResponse({"res":False, 'message':"inbox is empty"})
 
 
 @token_req
@@ -152,42 +150,48 @@ def sendMessage_view(request, fromUser, toUser):
        return JsonResponse({"res":False, "message": "message is empty , please add text"})
 
 
+
+
+@token_req
+@csrf_exempt
+def singleMessage_view(request,  messageId):
+    print("came here")
+    _message={}
+    theMessage=message.objects.get(id=messageId)
+    if theMessage:
+       print(theMessage)
+       _message['text']=theMessage.messageText
+       _message['textTitle']=theMessage.title
+       _message['date']=theMessage.date.strftime("%m/%d/%Y, %H:%M:%S")
+       _message['senderfname']=theMessage.fromUser.first_name
+       _message['senderlname']=theMessage.fromUser.last_name
+       user2=theMessage.toUser
+       _message['getterfname']=theMessage.toUser.first_name
+       _message['getterlname']=theMessage.toUser.last_name
+       jsona=json.dumps(_message)
+       return JsonResponse({"res":True, "singleMessage": jsona})
+    else:
+       return JsonResponse({"res":False, "message": 'message has not been found'})
+
+
 @token_req
 @csrf_exempt
 def deleteMessage_view(request, username, messageId):
     theMessage=message.objects.get(id=messageId)
-    if  theMessage.deleteFromGetter == True and theMessage.fromUser == username:
+    if  theMessage.deleteFromGetter == True and str(theMessage.fromUser) == username:
         theMessage.delete()
         return JsonResponse({"res":True})
-    elif theMessage.deleteFromSender == True and theMessage.toUser == username:
+    if theMessage.deleteFromSender == True and str(theMessage.toUser)== username:
          theMessage.delete()
          return JsonResponse({"res":True})
-    elif theMessage.fromUser == username:
+    if str(theMessage.fromUser) == username:
        theMessage.deleteFromSender =True
        theMessage.save()
        return JsonResponse({"res":True})
-    elif theMessage.toUser == username:
+    if str(theMessage.toUser) == username:
          theMessage.deleteFromGetter = True
          theMessage.save()
          return JsonResponse({"res":True})
     else:
          return JsonResponse({"res":False})
 
-
-
-@token_req
-@csrf_exempt
-def singleMessage_view(request,  messageId):
-    message={}
-    theMessage=message.objects.get(id=messageId)
-    if theMessage:
-       message['text']=theMessage.messageText
-       message['textTitle']=theMessage.title
-       message['date']=theMessage.date.strftime("%m/%d/%Y, %H:%M:%S")
-       message['senderfname']=theMessage.fromUser__first_name
-       message['enderlname']=theMessage.fromUser__last_name
-       message['getterfname']=theMessage.toUser__first_name
-       message['getterlname']=theMessage.toUser__last_name
-       return JsonResponse({"res":True, "singleMessage": message})
-    else:
-       return JsonResponse({"res":False, "message": 'message has not been found'})
