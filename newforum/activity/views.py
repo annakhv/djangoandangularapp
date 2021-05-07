@@ -143,8 +143,9 @@ def sendMessage_view(request, fromUser, toUser):
     body_unicode=request.body.decode('utf-8')
     body=json.loads(body_unicode)
     textOfMessage=body['messageText']
+    titleOfMessage=body['messageTitle']
     if textOfMessage != "" :
-       newMessage=message.objects.create(fromUser=fromUser, toUSer=toUser, messageText=textOfMessage)
+       newMessage=message.objects.create(fromUser=sender, toUser=getter, title=titleOfMessage, messageText=textOfMessage)
        return JsonResponse({"res":True, "message": "message is sent successfully"})
     else:
        return JsonResponse({"res":False, "message": "message is empty , please add text"})
@@ -168,8 +169,7 @@ def singleMessage_view(request,  messageId):
        user2=theMessage.toUser
        _message['getterfname']=theMessage.toUser.first_name
        _message['getterlname']=theMessage.toUser.last_name
-       jsona=json.dumps(_message)
-       return JsonResponse({"res":True, "singleMessage": jsona})
+       return JsonResponse({"res":True, "single": _message})
     else:
        return JsonResponse({"res":False, "message": 'message has not been found'})
 
