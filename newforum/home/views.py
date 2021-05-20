@@ -212,5 +212,5 @@ def processAnswer(results, username):
                answerDict['date']=date
            resultList.insert(0, answerDict)
            answerDict={}
-       resultList=sorted(resultList, key=lambda item: item['upVotes'], reverse=True)
+       resultList=resultList[:5]+sorted(resultList[5:], key=lambda item: (item['upVotes']), reverse=True)
        return resultList

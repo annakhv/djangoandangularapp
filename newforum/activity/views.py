@@ -85,7 +85,7 @@ def activeUsers_view(request, username):
        jsona=json.dumps(userList)
        return JsonResponse({"res":True, "json": jsona})
     else:
-       return JsonResponse({"res":False, "message": "no user that you follow is actve right now" })
+       return JsonResponse({"res":False, "message": "no user that you follow is active right now" })
 
 
 
@@ -97,10 +97,11 @@ def getSentMessages_view(request, username):
     answerDict={}
     user=User.objects.get(username=username)
     allMessages=user.messages.all()
-    results=allMessages.filter(deleteFromSender=False).values('id', 'toUser__first_name', 'toUser__last_name', 'title', 'date').order_by('-date')
+    results=allMessages.filter(deleteFromSender=False).values('id', 'toUser__username','toUser__first_name', 'toUser__last_name', 'title', 'date').order_by('-date')
     if results:
        for result in results:
            answerDict['id']=result['id']
+           answerDict['username']=result['toUser__username']
            answerDict['firstname']=result['toUser__first_name']
            answerDict['lastname']=result['toUser__last_name']
            answerDict['title']=result['title']
@@ -120,10 +121,11 @@ def getInbox_view(request, username):
     answerDict={}
     user=User.objects.get(username=username)
     getAllMessages=user.allMessages.all()
-    results=getAllMessages.filter(deleteFromGetter=False).values('id', 'fromUser__first_name', 'fromUser__last_name', 'title', 'date').order_by('-date')
+    results=getAllMessages.filter(deleteFromGetter=False).values('id','fromUser__username', 'fromUser__first_name', 'fromUser__last_name', 'title', 'date').order_by('-date')
     if results:
        for result in results:
            answerDict['id']=result['id']
+           answerDict['username']=result['fromUser__username']
            answerDict['firstname']=result['fromUser__first_name']
            answerDict['lastname']=result['fromUser__last_name']
            answerDict['title']=result['title']
